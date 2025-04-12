@@ -12,10 +12,27 @@ claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 bigquery_client = bigquery.Client(project=os.getenv("GCLOUD_PROJECT_ID"))
 
 
-MAX_MESSAGED = 20
+MAX_MESSAGES = 30
 
 st.title("💬🗄️ MIMIC-III Agent")
 st.caption("Chat with MIMIC-III tables")
+
+# Example prompts
+with st.expander("Example prompts", expanded=True):
+    example_prompts = [
+        "Calculate the average age of patients at their time of admission",
+        "What is the mortality rate for patients with sepsis?",
+        "Compare length of stay between male and female patients",
+        "Find the most commonly prescribed medications for heart failure patients",
+        "What vital signs are most predictive of ICU readmission?",
+        "Analyze the relationship between patient BMI and ventilator usage",
+        "Show the distribution of diagnoses across different age groups",
+    ]
+
+    st.markdown("### Try these example queries:")
+    for prompt in example_prompts:
+        st.markdown(f"- *{prompt}*")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -94,6 +111,7 @@ system_prompt = f"""
 * Database locations:
   - Clinical data: `mimiciii_clinical` (without the `physionet-data` prefix)
   - Notes data: `mimiciii_notes` (without the `physionet-data` prefix)
+* The query syntax is BIGQUERY SQL!
 * Process for answering:
   1. Identify relevant tables for the question
   2. Check table schemas before querying
@@ -105,7 +123,7 @@ system_prompt = f"""
 """
 
 
-if len(st.session_state.messages) > MAX_MESSAGED:
+if len(st.session_state.messages) > MAX_MESSAGES:
     st.caption("Maximum number of messages reached. Please clear history and try again.")
 else:
     if prompt := st.chat_input("Ask me anything about MIMIC-III"):
@@ -122,6 +140,6 @@ else:
                     system_prompt=system_prompt,
                     callback=partial(display_assistant_substep, expanded=True),
                     model="claude-3-7-sonnet-20250219",
-                    max_steps=MAX_MESSAGED - len(st.session_state.messages),
+                    max_steps=MAX_MESSAGES - len(st.session_state.messages),
                 )
                 st.markdown(answer)

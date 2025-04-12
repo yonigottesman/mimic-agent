@@ -1,4 +1,4 @@
-# Mimic-iii Agent
+# Mimic-Agent
 
 A friendly SQL agent that can run queries and answer questions using Mimic-iii clinical data.
 
