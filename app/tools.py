@@ -49,6 +49,8 @@ def get_highlevel_tables_information():
         if considerations_match:
             tables_info[table_name]["Important considerations"] = considerations_match.group(1).strip()
 
+    # To use less tokens, use only Brief Summary
+    tables_info = {table_name: tables_info[table_name]["Table purpose"] for table_name in tables_info}
     return yaml.dump(tables_info)
 
 
@@ -103,36 +105,47 @@ class GetTableSchemaAndDescriptionInput(BaseModel):
     )
 
 
-def get_table_schema_and_description(inputs: GetTableSchemaAndDescriptionInput, claude_client: Anthropic) -> str:
+class GetTableSchemaAndDescriptionInputBatch(BaseModel):
+    table_description_requests: list[GetTableSchemaAndDescriptionInput] = Field(
+        description="list of table description requests"
+    )
+
+
+def get_table_schema_and_description(inputs: GetTableSchemaAndDescriptionInputBatch, claude_client: Anthropic) -> str:
     """Get information about a mimic-iii table. This tool will not query the table,
     it will only provide information about the table."""
-    path = (Path("app/resources/tables") / inputs.table_name.value.lower()).with_suffix(".md")
-    text = path.read_text()
 
-    learning_prompt = f"""
-    Given a high level goal of a user request about the mimic-iii tables, and a detailed description of a table,
-    return the expected learnings from this table.
-    Return any relevant information that ca help the user to achieve the high level goal.
-    For exaple only return the columns that are needed to achieve the high level goal.
-    Be concise, return only the learnings you are requested.
+    responses = []
 
-    The high level goal is:
-    {inputs.high_level_goal}
-    The required learnings are:
-    {inputs.expected_learnings}
-    The table name is:
-    {inputs.table_name}
-    The table description is:
-    {text}
-    """
-    response = claude_client.messages.create(
-        model="claude-3-7-sonnet-20250219",
-        max_tokens=8192,
-        system="",
-        messages=[{"role": "user", "content": learning_prompt}],
-        temperature=0.0,
-    )
-    return response.content[0].text
+    for input in inputs.table_description_requests:
+        path = (Path("app/resources/tables") / input.table_name.value.lower()).with_suffix(".md")
+        text = path.read_text()
+
+        learning_prompt = f"""
+        Given a high level goal of a user request about the mimic-iii tables, and a detailed description of a table,
+        return the expected learnings from this table.
+        Return any relevant information that ca help the user to achieve the high level goal.
+        For exaple only return the columns that are needed to achieve the high level goal.
+        Be concise, return only the learnings you are requested.
+
+        The high level goal is:
+        {input.high_level_goal}
+        The required learnings are:
+        {input.expected_learnings}
+        The table name is:
+        {input.table_name}
+        The table description is:
+        {text}
+        """
+        response = claude_client.messages.create(
+            model="claude-3-5-haiku-20241022",  # "claude-3-7-sonnet-20250219",
+            max_tokens=8192,
+            system="",
+            messages=[{"role": "user", "content": learning_prompt}],
+            temperature=0.0,
+        )
+        responses.append(f"Table: {input.table_name.value}\n{response.content[0].text}")
+    return "\n\n".join(responses)
 
 
 class QueryDBInput(BaseModel):
@@ -216,4 +229,8 @@ def find_similar_queries(
     df = result.to_df()
     indices = maximal_marginal_relevance(query_embedding, df["query_description_vector"].tolist(), k=3)
     df = df.iloc[indices]
-    return "\n".join(df["query_sql"].tolist())
+    return "\n".join(
+        df[["query_description", "query_sql"]]
+        .apply(lambda r: f"-- {r.query_description}\n{r.query_sql}", axis=1)
+        .tolist()
+    )

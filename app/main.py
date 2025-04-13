@@ -12,13 +12,14 @@ from sentence_transformers import SentenceTransformer
 from tools import find_similar_queries, get_highlevel_tables_information, get_table_schema_and_description, query_db
 
 torch.classes.__path__ = []  # WTF?!
-claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 
 MAX_MESSAGES = 30
 
 st.title("💬🗄️ MIMIC-III Agent")
-st.caption("Chat with MIMIC-III tables")
+st.caption("Chat with [MIMIC-III](https://physionet.org/content/mimiciii/1.4/) tables")
+# link to github:
+st.markdown("[GitHub](https://github.com/yonigottesman/mimic-agent)")
 
 # Example prompts
 with st.expander("Example prompts", expanded=True):
@@ -27,9 +28,9 @@ with st.expander("Example prompts", expanded=True):
         "What is the mortality rate for patients with sepsis?",
         "Compare length of stay between male and female patients",
         "Find the most commonly prescribed medications for heart failure patients",
-        "What vital signs are most predictive of ICU readmission?",
-        "Analyze the relationship between patient BMI and ventilator usage",
-        "Show the distribution of diagnoses across different age groups",
+        # "What vital signs are most predictive of ICU readmission?",
+        # "Analyze the relationship between patient BMI and ventilator usage",
+        # "Show the distribution of diagnoses across different age groups",
     ]
 
     st.markdown("### Try these example queries:")
@@ -97,6 +98,15 @@ display_messages(st.session_state.messages)
 
 
 @st.cache_resource
+def get_claude_client():
+    claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    return claude_client
+
+
+claude_client = get_claude_client()
+
+
+@st.cache_resource
 def get_embedding_model():
     return SentenceTransformer("Alibaba-NLP/gte-modernbert-base")
 
@@ -140,7 +150,8 @@ system_prompt = f"""
   3. Extract information from appropriate tables
   4. Provide concise, direct answers that address EXACTLY what was asked
   5. If in doubt, ask for more information
-* Available tables overview:
+* Keep conversations short! Try to do at most 1 query per user request!!
+* The only available tables are:
 {get_highlevel_tables_information()}
 """
 
@@ -148,7 +159,7 @@ system_prompt = f"""
 if len(st.session_state.messages) > MAX_MESSAGES:
     st.caption("Maximum number of messages reached. Please clear history and try again.")
 else:
-    if prompt := st.chat_input("Ask me anything about MIMIC-III"):
+    if prompt := st.chat_input(f"Ask me anything about MIMIC-III"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         print("User prompt: ", prompt)
         with st.chat_message("user"):

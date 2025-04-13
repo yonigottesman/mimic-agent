@@ -9,7 +9,7 @@ flowchart TD
     BQ[Query BigQuery]
     TD[Get Table Description and Metadata]
     Retrieval[Retrieve Similar Example Queries]
-
+x
     %% Main flow
     User -->|"user query"| Agent
     Agent -->|"result"| User
@@ -53,4 +53,7 @@ gcloud run deploy mimic-agent \
 --update-env-vars ANTHROPIC_API_KEY=<anthropic_key>,GCLOUD_PROJECT_ID=<gcloud_project_id> \
 --min-instances 0 \
 --region europe-west1 \
---allow-unauthenticated
+--allow-unauthenticated \
+--memory 4Gi \
+--cpu 4000m
+```
