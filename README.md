@@ -2,6 +2,32 @@
 
 A friendly SQL agent that can run queries and answer questions using Mimic-iii clinical data.
 
+```mermaid
+flowchart TD
+    User([User])
+    Agent([Agent])
+    BQ[Query BigQuery]
+    TD[Get Table Description and Metadata]
+    Retrieval[Retrieve Similar Example Queries]
+
+    %% Main flow
+    User -->|"user query"| Agent
+    Agent -->|"result"| User
+    
+    %% Circular connections
+    Agent <-->|"execute queries"| BQ
+    Agent <-->|"retrieve metadata"| TD
+    Agent <-->|"search examples"| Retrieval
+
+    %% Styling with better dark/light mode compatibility
+    classDef user fill:#7b68ee,stroke:#483d8b,color:#ffffff,stroke-width:1px
+    classDef agent fill:#ff7f50,stroke:#ff4500,color:#ffffff,stroke-width:1px
+    classDef process fill:#3cb371,stroke:#2e8b57,color:#ffffff,stroke-width:1px
+    
+    class User user
+    class Agent agent
+    class BQ,TD,Retrieval process
+```
 
 Hosted Version: [https://mimic-agent.yonigo.co/](https://mimic-agent.yonigo.co/)
 

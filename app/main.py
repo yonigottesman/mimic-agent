@@ -1,15 +1,18 @@
 import os
 from functools import partial
 
+import lancedb
 import streamlit as st
+import torch
 import yaml
 from agents import Tool, ToolsContainer, agentic_steps
 from anthropic import Anthropic
 from google.cloud import bigquery
-from tools import get_highlevel_tables_information, get_table_schema_and_description, query_db
+from sentence_transformers import SentenceTransformer
+from tools import find_similar_queries, get_highlevel_tables_information, get_table_schema_and_description, query_db
 
+torch.classes.__path__ = []  # WTF?!
 claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-bigquery_client = bigquery.Client(project=os.getenv("GCLOUD_PROJECT_ID"))
 
 
 MAX_MESSAGES = 30
@@ -93,11 +96,29 @@ def display_messages(messages):
 display_messages(st.session_state.messages)
 
 
+@st.cache_resource
+def get_embedding_model():
+    return SentenceTransformer("Alibaba-NLP/gte-modernbert-base")
+
+
+@st.cache_resource
+def get_lancedb_table():
+    return lancedb.connect("app/resources/lancedb").open_table("example_queries")
+
+
+@st.cache_resource
+def get_bigquery_client():
+    return bigquery.Client(project=os.getenv("GCLOUD_PROJECT_ID"))
+
+
 def get_tools():
+    table = get_lancedb_table()
+    model = get_embedding_model()
+    bigquery_client = get_bigquery_client()
     tools = [
-        # Tool(find_relevant_tables),
         Tool(get_table_schema_and_description, call_args={"claude_client": claude_client}),
         Tool(query_db, call_args={"client": bigquery_client}),
+        Tool(find_similar_queries, call_args={"lancedb_table": table, "model": model}),
     ]
     return ToolsContainer(tools)
 
@@ -112,6 +133,7 @@ system_prompt = f"""
   - Clinical data: `mimiciii_clinical` (without the `physionet-data` prefix)
   - Notes data: `mimiciii_notes` (without the `physionet-data` prefix)
 * The query syntax is BIGQUERY SQL!
+* Always start by requesting similar example queries.
 * Process for answering:
   1. Identify relevant tables for the question
   2. Check table schemas before querying
@@ -128,7 +150,7 @@ if len(st.session_state.messages) > MAX_MESSAGES:
 else:
     if prompt := st.chat_input("Ask me anything about MIMIC-III"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-
+        print("User prompt: ", prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
         with st.chat_message("assistant"):

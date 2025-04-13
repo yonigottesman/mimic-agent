@@ -12,5 +12,7 @@ COPY app $APP_HOME/app
 WORKDIR $APP_HOME
 RUN uv sync
 
+RUN uv run huggingface-cli download Alibaba-NLP/gte-modernbert-base --exclude "*onnx*"
+
 EXPOSE 8080
 CMD ["uv", "run", "streamlit", "run", "app/main.py", "--server.address", "0.0.0.0", "--server.port", "8080"]

@@ -1,0 +1,420 @@
+{
+    "concepts": [
+        {
+            "description": "Text extracted from echocardiography reports using regular expressions.",
+            "link": "echo_data.sql"
+        },
+        {
+            "description": "Whether the patient has restrictions on life saving resuscitation.",
+            "link": "code_status.sql"
+        },
+        {
+            "description": "Comorbidities in categories proposed by Elixhauser et al. AHRQ produced the mapping.",
+            "link": "comorbidity/elixhauser_ahrq_v37.sql"
+        },
+        {
+            "description": "Comorbidities in categories proposed by Elixhauser et al. where DRG codes are not used to exclude primary conditions.",
+            "link": "comorbidity/elixhauser_ahrq_v37_no_drg.sql"
+        },
+        {
+            "description": "Comorbidities in categories proposed by Elixhauser et al. using an algorithm by Quan et al.",
+            "link": "comorbidity/elixhauser_quan.sql"
+        },
+        {
+            "description": "An integer score relating comorbid burden to mortality (AHRQ comorbidities).",
+            "link": "comorbidity/elixhauser_score_ahrq.sql"
+        },
+        {
+            "description": "An integer score relating comorbid burden to mortality (Quan et al. comorbidities).",
+            "link": "comorbidity/elixhauser_score_quan.sql"
+        },
+        {
+            "description": "Patient height (cm) and weight (kg).",
+            "link": "demographics/heightweight.sql"
+        },
+        {
+            "description": "Information relating to each patient ICU stay.",
+            "link": "demographics/icustay_detail.sql"
+        },
+        {
+            "description": "A table with one row per hour a patient is in the ICU.",
+            "link": "demographics/icustay_hours.sql"
+        },
+        {
+            "description": "A table with start/stop times for a patient's ICU stay based on the time of their first and last documented heart rate.",
+            "link": "demographics/icustay_times.sql"
+        },
+        {
+            "description": "Load ICD-9 to CCS mapping.",
+            "link": "diagnosis/ccs_dx.sql"
+        },
+        {
+            "description": "Start and stop times for administration of adenosine.",
+            "link": "durations/adenosine_durations.sql"
+        },
+        {
+            "description": "Start and stop times for presence of an arterial line.",
+            "link": "durations/arterial_line_durations.sql"
+        },
+        {
+            "description": "Start and stop times for presence of an central line",
+            "link": "durations/central_line_durations.sql"
+        },
+        {
+            "description": "Start and stop times for continuous renal replacement therapy (CRRT).",
+            "link": "durations/crrt_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of dobutamine.",
+            "link": "durations/dobutamine_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of dopamine.",
+            "link": "durations/dopamine_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of epinephrine.",
+            "link": "durations/epinephrine_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of isuprel.",
+            "link": "durations/isuprel_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of milrinone.",
+            "link": "durations/milrinone_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of norepinephrine.",
+            "link": "durations/norepinephrine_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of phenylephrine.",
+            "link": "durations/phenylephrine_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of vasopressin.",
+            "link": "durations/vasopressin_durations.sql"
+        },
+        {
+            "description": "Start and stop times for administration of vasopressor.",
+            "link": "durations/vasopressor_durations.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for dobutamine.",
+            "link": "durations/dobutamine_dose.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for dopamine.",
+            "link": "durations/dopamine_dose.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for epinephrine.",
+            "link": "durations/epinephrine_dose.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for neuro blocking agents.",
+            "link": "durations/neuroblock_dose.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for norepinephrine.",
+            "link": "durations/norepinephrine_dose.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for phenylephrine.",
+            "link": "durations/phenylephrine_dose.sql"
+        },
+        {
+            "description": "Dose administered with start/stop times for vasopressin.",
+            "link": "durations/vasopressin_dose.sql"
+        },
+        {
+            "description": "Classifies patient settings as implying mechanical ventilation.",
+            "link": "durations/ventilation_classification.sql"
+        },
+        {
+            "description": "Start and stop times for mechanical ventilation.",
+            "link": "durations/ventilation_durations.sql"
+        },
+        {
+            "description": "Start and stop times for daily weight measurements.",
+            "link": "durations/weight_durations.sql"
+        },
+        {
+            "description": "Highest and lowest blood gas values in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/blood_gas_first_day.sql"
+        },
+        {
+            "description": "Highest and lowest arterial blood gas values in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/blood_gas_first_day_arterial.sql"
+        },
+        {
+            "description": "Highest and lowest Glasgow Coma Scale in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/gcs_first_day.sql"
+        },
+        {
+            "description": "Median height recorded for the patient in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/height_first_day.sql"
+        },
+        {
+            "description": "Highest and lowest laboratory values in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/labs_first_day.sql"
+        },
+        {
+            "description": "Presence of renal replacement therapy in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/rrt_first_day.sql"
+        },
+        {
+            "description": "Total urine output over the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/urine_output_first_day.sql"
+        },
+        {
+            "description": "Whether the patient was mechanically ventilated in the first 24 hours.",
+            "link": "firstday/ventilation_first_day.sql"
+        },
+        {
+            "description": "Highest and lowest vital signs in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/vitals_first_day.sql"
+        },
+        {
+            "description": "Highest and lowest weight measurements in the first 24 hours of a patient's ICU stay.",
+            "link": "firstday/weight_first_day.sql"
+        },
+        {
+            "description": "Times at which a patient received a bolus of colloidal fluid.",
+            "link": "fluid_balance/colloid_bolus.sql"
+        },
+        {
+            "description": "Times at which a patient received a bolus of crystalloid fluid.",
+            "link": "fluid_balance/crystalloid_bolus.sql"
+        },
+        {
+            "description": "Urine output for a patient with the time of documentation.",
+            "link": "fluid_balance/urine_output.sql"
+        },
+        {
+            "description": "Creatinine values with baseline creatinine as defined by KDIGO.",
+            "link": "organfailure/kdigo_creatinine.sql"
+        },
+        {
+            "description": "Urine output over 6, 12, and 24 hour periods.",
+            "link": "organfailure/kdigo_uo.sql"
+        },
+        {
+            "description": "Stages of acute kidney failure (AKI) as defined by KDIGO.",
+            "link": "organfailure/kdigo_stages.sql"
+        },
+        {
+            "description": "Stages of AKI for the first 48 hours of a patient's ICU stay.",
+            "link": "organfailure/kdigo_stages_48hr.sql"
+        },
+        {
+            "description": "Stages of AKI for the first 7 days of a patient's ICU stay.",
+            "link": "organfailure/kdigo_stages_7day.sql"
+        },
+        {
+            "description": "The MELD score, often used to assess health of liver transplant candidates.",
+            "link": "organfailure/meld.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and blood gas measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_bg.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and fraction of inspired oxygen measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_fio2.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and Glasgow Coma Scale measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_gcs.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and height measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_height.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and intracranial pressure measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_icp.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and invasive lines data. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_invasive_lines.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and laboratory values. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_lab.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and the Oxford Acute Severity of Illness Score (OASIS). They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_oasis.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and renal replacement therapy data. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_rrt.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and the Sequential Organ Failure Assessment (SOFA) scale. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_sofa.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and urine output measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_uo.sql"
+        },
+        {
+            "description": "Pivoted views contain the patient icustay_id, the charttime, and vital sign measurements. They are useful for acquiring a time series of values for patient stays.",
+            "link": "pivot/pivoted_vital.sql"
+        },
+        {
+            "description": "Sepsis defined using billing codes validated by Angus et al.",
+            "link": "sepsis/angus.sql"
+        },
+        {
+            "description": "Explicitly coded sepsis (i.e. a list of patients with ICD-9 codes which refer to sepsis).",
+            "link": "sepsis/explicit.sql"
+        },
+        {
+            "description": "Sepsis defined using billing codes validated by Martin et al. (now considered \"septicemia\").",
+            "link": "sepsis/martin.sql"
+        },
+        {
+            "description": "Severity of illness score: Acute Physiology Score III. Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/apsiii.sql"
+        },
+        {
+            "description": "Severity of illness score: Logistic Organ Dysfunction Score. Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/lods.sql"
+        },
+        {
+            "description": "Severity of illness score: Modified Logistic Organ Dysfunction Score. Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/mlods.sql"
+        },
+        {
+            "description": "Severity of illness score: The Oxford Acute Severity of Illness Score (OASIS). Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/oasis.sql"
+        },
+        {
+            "description": "Severity of illness score: The quick Sequential Organ Failure Assessment (qSOFA) scale. Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/qsofa.sql"
+        },
+        {
+            "description": "Severity of illness score: The Simplified Acute Physiology Score (SAPS). Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/saps.sql"
+        },
+        {
+            "description": "Severity of illness score: SAPS II. Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/sapsii.sql"
+        },
+        {
+            "description": "Severity of illness score: The Systemic Inflammation Response Score (SIRS). Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/sirs.sql"
+        },
+        {
+            "description": "Severity of illness score: The Sequential Organ Failure Assessment (SOFA) scale. Defined using the highest/lowest values during the first 24 hours of a patient's stay.",
+            "link": "severityscores/sofa.sql"
+        },
+        {
+            "description": "A list of antibiotics mentioned in the prescriptions table.",
+            "link": "treatment/abx_prescriptions_list.sql"
+        },
+        {
+            "description": "Suspicion of infection as defined by antibiotic use near the ordering of blood cultures.",
+            "link": "treatment/suspicion_of_infection.sql"
+        },
+        {
+            "description": "Count the number of hospital admissions in equally sized bins of age",
+            "link": "cookbook/age_histogram.sql"
+        },
+        {
+            "description": "Retrieves basic patient information from the patients table",
+            "link": "cookbook/basic_patient_info.sql"
+        },
+        {
+            "description": "Create a distribution of BUN values for adult hospital admissions",
+            "link": "cookbook/bun.sql"
+        },
+        {
+            "description": "Find the glasgow coma *MOTOR* score for each adult patient",
+            "link": "cookbook/gcs.sql"
+        },
+        {
+            "description": "Retrieves a glucose histogram of adult patients",
+            "link": "cookbook/glucose.sql"
+        },
+        {
+            "description": "Create a histogram bicarbonate levels for all patients (adults and neonates)",
+            "link": "cookbook/hco.sql"
+        },
+        {
+            "description": "Create a histogram of heart rates for adult patients",
+            "link": "cookbook/heart_rate.sql"
+        },
+        {
+            "description": "Create a histogram of heights for all patients",
+            "link": "cookbook/height.sql"
+        },
+        {
+            "description": "Count the number of patients with a specific icd9 code above a certain age",
+            "link": "cookbook/icd9agelimited.sql"
+        },
+        {
+            "description": "Count the number of patients with a specific icd9 code",
+            "link": "cookbook/icd9count.sql"
+        },
+        {
+            "description": "Count the number of patients with a specific icd9 code and shows the output as a histogram with groups of age",
+            "link": "cookbook/icd9vagehistogram.sql"
+        },
+        {
+            "description": "Count the number of patients with two specific icd9 codes above a certain age",
+            "link": "cookbook/icd9vicd9agelimited.sql"
+        },
+        {
+            "description": "Count the number of patients with two specific icd9 codes",
+            "link": "cookbook/icd9vicd9count.sql"
+        },
+        {
+            "description": "Create a table that counts each day spent in the ICU and assign a timestamp to the start and end of each day",
+            "link": "cookbook/icustay_days.sql"
+        },
+        {
+            "description": "Retrieves the systolic blood pressure of hospital survivors",
+            "link": "cookbook/min_surviving_bp.sql"
+        },
+        {
+            "description": "Calculate in-hospital, 30-day, and 1 year mortality (from hospital admission)",
+            "link": "cookbook/mortality.sql"
+        },
+        {
+            "description": "Counts the total number of patients",
+            "link": "cookbook/number_of_patients.sql"
+        },
+        {
+            "description": "Creates a histogram of serum potassium for adult patients",
+            "link": "cookbook/potassium.sql"
+        },
+        {
+            "description": "Retrieves the respiration rate of adult patients",
+            "link": "cookbook/rr.sql"
+        },
+        {
+            "description": "Retrieves the systolic blood pressure for adult patients",
+            "link": "cookbook/sbp.sql"
+        },
+        {
+            "description": "Retrieves the blood serum sodium levels for adult patients",
+            "link": "cookbook/sodium.sql"
+        },
+        {
+            "description": "Retrieves the temperature of adult patients",
+            "link": "cookbook/temp.sql"
+        },
+        {
+            "description": "Retrieves the urine output of adult patients",
+            "link": "cookbook/uo.sql"
+        },
+        {
+            "description": "Retrieves the white blood cell count for adult patients",
+            "link": "cookbook/wbc.sql"
+        }
+    ]
+}

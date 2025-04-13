@@ -2,11 +2,14 @@ import re
 from enum import Enum
 from pathlib import Path
 
+import lancedb
+import numpy as np
 import pandas as pd
 import yaml
 from anthropic import Anthropic
 from google.cloud import bigquery
 from pydantic import BaseModel, Field
+from sentence_transformers import SentenceTransformer
 
 
 def get_highlevel_tables_information():
@@ -142,3 +145,75 @@ def query_db(inputs: QueryDBInput, client: bigquery.Client) -> str:
     df = query_job.to_dataframe()
     df = df.map(lambda x: str(x) if isinstance(x, pd.Timestamp) else x)
     return yaml.dump(df.head(10).to_dict(orient="records"))
+
+
+def cosine_similarity(X, Y):
+    X = np.array(X)
+    Y = np.array(Y)
+    X_norm = np.linalg.norm(X, axis=1)
+    Y_norm = np.linalg.norm(Y, axis=1)
+    similarity = np.dot(X, Y.T) / np.outer(X_norm, Y_norm)
+    similarity[np.isnan(similarity) | np.isinf(similarity)] = 0.0
+    return similarity
+
+
+# shamelessly copied from https://github.com/langchain-ai/langchain/blob/42944f34997a68cb2ae09cd5589d68bf32aaf0aa/libs/community/langchain_community/vectorstores/utils.py#L23
+def maximal_marginal_relevance(
+    query_embedding: np.ndarray,
+    embedding_list: list,
+    lambda_mult: float = 0.5,
+    k: int = 4,
+) -> list[int]:
+    """Calculate maximal marginal relevance."""
+    if min(k, len(embedding_list)) <= 0:
+        return []
+    if query_embedding.ndim == 1:
+        query_embedding = np.expand_dims(query_embedding, axis=0)
+    similarity_to_query = cosine_similarity(query_embedding, embedding_list)[0]
+    most_similar = int(np.argmax(similarity_to_query))
+    idxs = [most_similar]
+    selected = np.array([embedding_list[most_similar]])
+    while len(idxs) < min(k, len(embedding_list)):
+        best_score = -np.inf
+        idx_to_add = -1
+        similarity_to_selected = cosine_similarity(embedding_list, selected)
+        for i, query_score in enumerate(similarity_to_query):
+            if i in idxs:
+                continue
+            redundant_score = max(similarity_to_selected[i])
+            equation_score = lambda_mult * query_score - (1 - lambda_mult) * redundant_score
+            if equation_score > best_score:
+                best_score = equation_score
+                idx_to_add = i
+        idxs.append(idx_to_add)
+        selected = np.append(selected, [embedding_list[idx_to_add]], axis=0)
+    return idxs
+
+
+class FindRelevantExampleQueriesInput(BaseModel):
+    query_description: str = Field(description="Concise description of the query to find similar queries for")
+
+
+def find_similar_queries(
+    inputs: FindRelevantExampleQueriesInput,
+    lancedb_table: lancedb.table.LanceTable,
+    model: SentenceTransformer,
+) -> str:
+    """Given a query description, retrieve similar query descriptions and the sql queries themselves"""
+    query_embedding = model.encode(inputs.query_description, convert_to_tensor=False)
+
+    result = (
+        lancedb_table.search(
+            query_type="hybrid",
+            vector_column_name="query_description_vector",
+            fts_columns="query_description",
+        )
+        .text(inputs.query_description)
+        .vector(query_embedding)
+        .bypass_vector_index()  # exhaustive search
+        .limit(10)
+    )
+    df = result.to_df()
+    indices = maximal_marginal_relevance(query_embedding, df["query_description_vector"].tolist(), k=3)
+    df = df.iloc[indices]
+    return "\n".join(df["query_sql"].tolist())
