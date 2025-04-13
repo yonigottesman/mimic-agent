@@ -9,7 +9,7 @@ flowchart TD
     BQ[Query BigQuery]
     TD[Get Table Description and Metadata]
     Retrieval[Retrieve Similar Example Queries]
-x
+
     %% Main flow
     User -->|"user query"| Agent
     Agent -->|"result"| User
