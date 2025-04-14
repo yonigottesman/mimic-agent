@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 from pathlib import Path
+from textwrap import dedent
 
 import lancedb
 import numpy as np
@@ -121,22 +122,24 @@ def get_table_schema_and_description(inputs: GetTableSchemaAndDescriptionInputBa
         path = (Path("app/resources/tables") / input.table_name.value.lower()).with_suffix(".md")
         text = path.read_text()
 
-        learning_prompt = f"""
-        Given a high level goal of a user request about the mimic-iii tables, and a detailed description of a table,
-        return the expected learnings from this table.
-        Return any relevant information that ca help the user to achieve the high level goal.
-        For exaple only return the columns that are needed to achieve the high level goal.
-        Be concise, return only the learnings you are requested.
+        learning_prompt = dedent(
+            f"""
+            Given a high level goal of a user request about the mimic-iii tables, and a detailed description of a table,
+            return the expected learnings from this table.
+            Return any relevant information that ca help the user to achieve the high level goal.
+            For exaple only return the columns that are needed to achieve the high level goal.
+            Be concise, return only the learnings you are requested.
 
         The high level goal is:
         {input.high_level_goal}
         The required learnings are:
         {input.expected_learnings}
-        The table name is:
-        {input.table_name}
-        The table description is:
-        {text}
-        """
+            The table name is:
+            {input.table_name}
+            The table description is:
+            {text}
+            """
+        )
         response = claude_client.messages.create(
             model="claude-3-5-haiku-20241022",  # "claude-3-7-sonnet-20250219",
             max_tokens=8192,

@@ -28,9 +28,6 @@ with st.expander("Example prompts", expanded=True):
         "What is the mortality rate for patients with sepsis?",
         "Compare length of stay between male and female patients",
         "Find the most commonly prescribed medications for heart failure patients",
-        # "What vital signs are most predictive of ICU readmission?",
-        # "Analyze the relationship between patient BMI and ventilator usage",
-        # "Show the distribution of diagnoses across different age groups",
     ]
 
     st.markdown("### Try these example queries:")
