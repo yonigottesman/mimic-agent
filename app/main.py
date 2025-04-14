@@ -166,13 +166,16 @@ else:
             st.markdown(prompt)
         with st.chat_message("assistant"):
             with st.spinner("Thinking", show_time=True):
-                answer = agentic_steps(
-                    messages=st.session_state.messages,
-                    claude_client=claude_client,
-                    tools=st.session_state.tools,
-                    system_prompt=system_prompt,
-                    callback=partial(display_assistant_substep, expanded=True),
-                    model="claude-3-7-sonnet-20250219",
-                    max_steps=MAX_MESSAGES - len(st.session_state.messages),
-                )
-                st.markdown(answer)
+                try:
+                    answer = agentic_steps(
+                        messages=st.session_state.messages,
+                        claude_client=claude_client,
+                        tools=st.session_state.tools,
+                        system_prompt=system_prompt,
+                        callback=partial(display_assistant_substep, expanded=True),
+                        model="claude-3-7-sonnet-20250219",
+                        max_steps=MAX_MESSAGES - len(st.session_state.messages),
+                    )
+                    st.markdown(answer)
+                except Exception as e:
+                    st.error("Error: LLM rate limit exceeded. Please try again later.")
