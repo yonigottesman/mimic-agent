@@ -31,6 +31,13 @@ flowchart TD
 
 Hosted Version: [https://mimic-agent.yonigo.co/](https://mimic-agent.yonigo.co/)
 
+## Run Template App
+```
+export ANTHROPIC_API_KEY=<anthropic_key>
+uv run python app/agent_template.py
+```
+
+
 ## Build Docker
 ```
 docker build -f Dockerfile -t mimic-agent .

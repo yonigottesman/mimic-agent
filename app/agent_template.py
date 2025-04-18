@@ -4,80 +4,28 @@ from textwrap import dedent
 from typing import Literal
 
 import requests
-import streamlit as st
 import yaml
 from agents import Tool, ToolsContainer, agentic_steps
 from anthropic import Anthropic
 from duckduckgo_search import DDGS
 from markdownify import markdownify as md
 from pydantic import BaseModel, Field
-
-st.title("💬🗄️ Agent Template")
-
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+from rich.console import Console, Group
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.syntax import Syntax
 
 
-def reset():
-    st.session_state.messages = []
-
-
-st.button("Clear History", on_click=reset)
-
-
-def display_assistant_substep(message, expanded=False):
-    with st.status("", expanded=expanded) as status:
-        label = ""
-        for content in message["content"]:
-            if content["type"] == "text":
-                status.write(content["text"])
-            elif content["type"] == "tool_use":
-                status.write(f"Using tool: **{content['name']}** with input:")
-                status.code(yaml.dump(content["input"]))
-            elif content["type"] == "tool_result":
-                status.write("Tool Result")
-                status.code(content["content"])
-                expanded = False
-                label = "Tool Result"
-        status.update(label=label, state="complete", expanded=expanded)
-
-
-def is_final_agentic_step(message):
-    return len(message["content"]) == 1 and message["content"][0]["type"] == "text"
-
-
-def display_messages(messages):
-    i = 0
-    while i < len(messages):
-        if messages[i]["role"] == "user" and all(
-            m["type"] != "tool_result" if isinstance(m, dict) else True for m in messages[i]["content"]
-        ):
-            with st.chat_message("user"):
-                st.markdown(messages[i]["content"])
-        elif messages[i]["role"] == "assistant":
-            with st.chat_message("assistant"):
-                # run until last message in agentic steps
-                while i < len(messages) and not (is_final_agentic_step(messages[i])):
-                    display_assistant_substep(messages[i])
-                    i += 1
-                if i < len(messages):
-                    st.markdown(messages[i]["content"][0]["text"])
-        else:
-            assert False
-        i += 1
-
-
-display_messages(st.session_state.messages)
-
-
-@st.cache_resource
-def get_claude_client():
-    claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    return claude_client
-
-
-claude_client = get_claude_client()
+def display_assistant_substep(message, console: Console):
+    for content in message["content"]:
+        if content.get("type", "") == "text" or "text" in content:
+            console.print(Panel(content["text"], title="Reasoning", border_style="green"))
+        elif content["type"] == "tool_use":
+            text = Markdown(f"Using tool: **{content['name']}** with input:")
+            inputs = Syntax(yaml.dump(content["input"]), "yaml", theme="monokai", line_numbers=False)
+            console.print(Panel(Group(text, inputs), title="Tool Use", border_style="green"))
+        elif content["type"] == "tool_result":
+            console.print(Panel(content["content"], title="Tool Result", border_style="green"))
 
 
 class SearchWebCommand(BaseModel):
@@ -102,7 +50,7 @@ class FetchWebPageCommand(BaseModel):
     high_level_goal: str = Field(..., description="The high level goal of why you need this web page")
 
 
-def fetch_web_page(inputs: FetchWebPageCommand):
+def fetch_web_page(inputs: FetchWebPageCommand, claude_client: Anthropic):
     """Fetch the web page from the given URL."""
     page_markdown = md(requests.get(inputs.url).text)
     learning_prompt = dedent(
@@ -121,7 +69,7 @@ def fetch_web_page(inputs: FetchWebPageCommand):
         """
     )
     response = claude_client.messages.create(
-        model="claude-3-5-haiku-20241022",  # "claude-3-7-sonnet-20250219",
+        model="claude-3-5-haiku-20241022",
         max_tokens=8192,
         system="",
         messages=[{"role": "user", "content": learning_prompt}],
@@ -130,31 +78,30 @@ def fetch_web_page(inputs: FetchWebPageCommand):
     return response.content[0].text
 
 
-def get_tools():
+def main():
+    console = Console()
+    client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     tools = [
         Tool(search_web),
-        Tool(fetch_web_page),
+        Tool(fetch_web_page, call_args={"claude_client": client}),
     ]
-    return ToolsContainer(tools)
+    tools = ToolsContainer(tools)
+    messages = []
 
-
-if "tools" not in st.session_state:
-    st.session_state.tools = get_tools()
-
-
-if prompt := st.chat_input("Ask me anything"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking", show_time=True):
+    while True:
+        user_input = console.input("> ")
+        messages.append({"role": "user", "content": user_input})
+        with console.status("[bold green]Thinking..."):
             answer = agentic_steps(
-                messages=st.session_state.messages,
-                claude_client=claude_client,
-                tools=st.session_state.tools,
-                system_prompt="You are a helpful assistant",
-                callback=partial(display_assistant_substep, expanded=True),
+                messages=messages,
+                claude_client=client,
+                tools=tools,
+                system_prompt="You are a helpful assistant.",
+                callback=partial(display_assistant_substep, console=console),
                 model="claude-3-7-sonnet-20250219",
-                max_steps=float("inf"),
             )
-            st.markdown(answer)
+        console.print(Panel(Markdown(answer), title="Final Response", border_style="green"))
+
+
+if __name__ == "__main__":
+    main()

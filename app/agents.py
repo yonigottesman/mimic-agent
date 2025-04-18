@@ -55,9 +55,9 @@ def agentic_steps(
     system_prompt: str,
     callback: Callable,
     model: str,
-    max_steps: int = 5,
+    max_steps: int = float("inf"),
 ):
-    while True and max_steps > 0:
+    while max_steps > 0:
         max_steps -= 1
         response = claude_client.messages.create(
             model=model,
