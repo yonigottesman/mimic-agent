@@ -6,24 +6,13 @@ from typing import Literal
 import requests
 import streamlit as st
 import yaml
-from agents import Tool, ToolsContainer, agentic_steps
+from agents import TinyAgent, Tool, ToolsContainer
 from anthropic import Anthropic
 from duckduckgo_search import DDGS
 from markdownify import markdownify as md
 from pydantic import BaseModel, Field
 
 st.title("💬🗄️ Agent Template")
-
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-
-def reset():
-    st.session_state.messages = []
-
-
-st.button("Clear History", on_click=reset)
 
 
 def display_assistant_substep(message, expanded=False):
@@ -68,18 +57,6 @@ def display_messages(messages):
         i += 1
 
 
-display_messages(st.session_state.messages)
-
-
-@st.cache_resource
-def get_claude_client():
-    claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    return claude_client
-
-
-claude_client = get_claude_client()
-
-
 class SearchWebCommand(BaseModel):
     query: str = Field(..., description="The query to search the web for")
     search_type: Literal["text", "news"] = Field(..., description="The type of search to perform")
@@ -102,7 +79,7 @@ class FetchWebPageCommand(BaseModel):
     high_level_goal: str = Field(..., description="The high level goal of why you need this web page")
 
 
-def fetch_web_page(inputs: FetchWebPageCommand):
+def fetch_web_page(inputs: FetchWebPageCommand, claude_client: Anthropic):
     """Fetch the web page from the given URL."""
     page_markdown = md(requests.get(inputs.url).text)
     learning_prompt = dedent(
@@ -130,31 +107,32 @@ def fetch_web_page(inputs: FetchWebPageCommand):
     return response.content[0].text
 
 
-def get_tools():
+def get_tools(claude_client: Anthropic):
     tools = [
         Tool(search_web),
-        Tool(fetch_web_page),
+        Tool(fetch_web_page, call_args={"claude_client": claude_client}),
     ]
     return ToolsContainer(tools)
 
 
-if "tools" not in st.session_state:
-    st.session_state.tools = get_tools()
+@st.cache_resource
+def get_agent():
+    claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    return TinyAgent(
+        claude_client=claude_client,
+        tools=get_tools(claude_client),
+        system_prompt="You are a helpful assistant",
+        callback=partial(display_assistant_substep, expanded=True),
+        model="claude-3-5-haiku-latest",
+    )
 
+
+display_messages(get_agent().memory)
 
 if prompt := st.chat_input("Ask me anything"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
     with st.chat_message("assistant"):
         with st.spinner("Thinking", show_time=True):
-            answer = agentic_steps(
-                messages=st.session_state.messages,
-                claude_client=claude_client,
-                tools=st.session_state.tools,
-                system_prompt="You are a helpful assistant",
-                callback=partial(display_assistant_substep, expanded=True),
-                model="claude-3-7-sonnet-20250219",
-                max_steps=float("inf"),
-            )
+            answer = get_agent().run(prompt)
             st.markdown(answer)

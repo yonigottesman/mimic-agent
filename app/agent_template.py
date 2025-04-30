@@ -5,7 +5,7 @@ from typing import Literal
 
 import requests
 import yaml
-from agents import Tool, ToolsContainer, agentic_steps
+from agents import TinyAgent, Tool, ToolsContainer, agentic_steps
 from anthropic import Anthropic
 from duckduckgo_search import DDGS
 from markdownify import markdownify as md
@@ -86,20 +86,18 @@ def main():
         Tool(fetch_web_page, call_args={"claude_client": client}),
     ]
     tools = ToolsContainer(tools)
-    messages = []
+    agent = TinyAgent(
+        claude_client=client,
+        tools=tools,
+        system_prompt="You are a helpful assistant.",
+        callback=partial(display_assistant_substep, console=console),
+        model="claude-3-7-sonnet-20250219",
+    )
 
     while True:
         user_input = console.input("> ")
-        messages.append({"role": "user", "content": user_input})
         with console.status("[bold green]Thinking..."):
-            answer = agentic_steps(
-                messages=messages,
-                claude_client=client,
-                tools=tools,
-                system_prompt="You are a helpful assistant.",
-                callback=partial(display_assistant_substep, console=console),
-                model="claude-3-7-sonnet-20250219",
-            )
+            answer = agent.run(user_input)
         console.print(Panel(Markdown(answer), title="Final Response", border_style="green"))
 
 

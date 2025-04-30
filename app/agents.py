@@ -55,7 +55,7 @@ def agentic_steps(
     system_prompt: str,
     callback: Callable,
     model: str,
-    max_steps: int = float("inf"),
+    max_steps: float = float("inf"),
 ):
     while max_steps > 0:
         max_steps -= 1
@@ -90,3 +90,40 @@ def agentic_steps(
         else:
             return response_message["content"][0]["text"]
     return "Reached max steps"
+
+
+class TinyAgent:
+    def __init__(
+        self,
+        claude_client: Anthropic,
+        tools: ToolsContainer,
+        system_prompt: str,
+        callback: Callable,
+        model: str,
+    ) -> None:
+        self.claude_client = claude_client
+        self.tools = tools
+        self.system_prompt = system_prompt
+        self.model = model
+        self.memory: list[dict] = []
+        self.callback = callback
+
+    def run(
+        self,
+        prompt: str,
+        reset_messages: bool = False,
+        max_steps: float = float("inf"),
+    ) -> str:
+        if reset_messages:
+            self.memory = []
+        self.memory.append({"role": "user", "content": prompt})
+        final_response = agentic_steps(
+            self.memory,
+            self.claude_client,
+            self.tools,
+            self.system_prompt,
+            self.callback,
+            self.model,
+            max_steps,
+        )
+        return final_response

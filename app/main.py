@@ -5,7 +5,7 @@ import lancedb
 import streamlit as st
 import torch
 import yaml
-from agents import Tool, ToolsContainer, agentic_steps
+from agents import TinyAgent, Tool, ToolsContainer
 from anthropic import Anthropic
 from google.cloud import bigquery
 from sentence_transformers import SentenceTransformer
@@ -91,18 +91,6 @@ def display_messages(messages):
         i += 1
 
 
-display_messages(st.session_state.messages)
-
-
-@st.cache_resource
-def get_claude_client():
-    claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    return claude_client
-
-
-claude_client = get_claude_client()
-
-
 @st.cache_resource
 def get_embedding_model():
     return SentenceTransformer("Alibaba-NLP/gte-modernbert-base")
@@ -118,7 +106,7 @@ def get_bigquery_client():
     return bigquery.Client(project=os.getenv("GCLOUD_PROJECT_ID"))
 
 
-def get_tools():
+def get_tools(claude_client):
     table = get_lancedb_table()
     model = get_embedding_model()
     bigquery_client = get_bigquery_client()
@@ -130,9 +118,19 @@ def get_tools():
     return ToolsContainer(tools)
 
 
-if "tools" not in st.session_state:
-    st.session_state.tools = get_tools()
+@st.cache_resource
+def get_agent():
+    claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    return TinyAgent(
+        claude_client=claude_client,
+        tools=get_tools(claude_client),
+        system_prompt="You are a helpful assistant",
+        callback=partial(display_assistant_substep, expanded=True),
+        model="claude-3-7-sonnet-20250219",
+    )
 
+
+display_messages(get_agent().memory)
 
 system_prompt = f"""
 * You are a helpful assistant that accesses the MIMIC-III database to answer questions.
@@ -156,23 +154,14 @@ system_prompt = f"""
 if len(st.session_state.messages) > MAX_MESSAGES:
     st.caption("Maximum number of messages reached. Please clear history and try again.")
 else:
-    if prompt := st.chat_input(f"Ask me anything about MIMIC-III"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+    if prompt := st.chat_input("Ask me anything about MIMIC-III"):
         print("User prompt: ", prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
         with st.chat_message("assistant"):
             with st.spinner("Thinking", show_time=True):
                 try:
-                    answer = agentic_steps(
-                        messages=st.session_state.messages,
-                        claude_client=claude_client,
-                        tools=st.session_state.tools,
-                        system_prompt=system_prompt,
-                        callback=partial(display_assistant_substep, expanded=True),
-                        model="claude-3-7-sonnet-20250219",
-                        max_steps=MAX_MESSAGES - len(st.session_state.messages),
-                    )
+                    answer = get_agent().run(prompt)
                     st.markdown(answer)
-                except Exception as e:
+                except Exception:
                     st.error("Error: LLM rate limit exceeded. Please try again later.")
