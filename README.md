@@ -1,7 +1,7 @@
 # Mimic-Agent
 
-A friendly SQL agent that can run queries and answer questions using Mimic-iii clinical data.
-
+A friendly SQL agent that can run queries and answer questions using Mimic-iii clinical data.  
+[Blog post](https://yonigottesman.github.io/2025/04/14/mimicagent.html)
 ```mermaid
 flowchart TD
     User([User])
